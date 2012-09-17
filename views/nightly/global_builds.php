@@ -1,14 +1,14 @@
 	<div class="content">
-		<h2 id="page_title">All builds</h2>
+		<h2 id="page_title"><?php echo l('plugins.nightly.all_builds'); ?></h2>
 	</div>
 
 	<table class="list">
 		<thead>
 			<th class="s">S</th>
-			<th class="fixed_name">Name</th>
-			<th class="last_success">Last success</th>
-			<th class="last_failure">Last failure</th>
-			<th class="last_duration">Last duration</th>
+			<th class="fixed_name"><?php echo l('name'); ?></th>
+			<th class="last_success"><?php echo l('plugins.nightly.last_success'); ?></th>
+			<th class="last_failure"><?php echo l('plugins.nightly.last_failure'); ?></th>
+			<th class="last_duration"><?php echo l('plugins.nightly.last_duration'); ?></th>
 		</thead>
 		<tbody>
 		<?php foreach ($projects as $project) { ?>

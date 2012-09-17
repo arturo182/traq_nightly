@@ -28,7 +28,7 @@ class Build extends Model
 	public function bullet()
 	{
 		$image = $this->status ? 'bullet_green.png' : 'bullet_red.png';
-		$title = $this->status ? 'Success' : 'Failure';
+		$title = $this->status ? l('plugins.nightly.success') : l('plugins.nightly.failure');
 		return '<img src="/assets/images/' . $image . '" style="vertical-align: middle;" alt="' . $title . '" title="' . $title . '">';
 	}
 
