@@ -2,11 +2,11 @@
 		<h2 id="page_title">Build #<?php echo $build->build_id; ?> (<?php echo Time::date("d-m-Y H:i:s", $build->built_at); ?>)</h2>
 	<?php if($prev_build || $next_build) { ?>
 		<?php if($prev_build) { ?>
-			<?php echo HTML::link(l('plugins.nightly.prev_build'), $prev_build->href()); ?>
+			<?php echo HTML::link(l('nightly.prev_build'), $prev_build->href()); ?>
 		<?php } ?>
 		<?php if($prev_build && $next_build) echo ' | '; ?>
 		<?php if($next_build) { ?>
-			<?php echo HTML::link(l('plugins.nightly.next_build'), $next_build->href()); ?>
+			<?php echo HTML::link(l('nightly.next_build'), $next_build->href()); ?>
 		<?php } ?>
 		<br>
 	<?php } ?>	
@@ -15,7 +15,7 @@
 		<b>Duration</b> <?php echo time_difference_in_words(time() - $build->duration, false); ?><br>
 	<?php if(strlen($build->artifacts) > 0) { ?>
 		<br>
-		<h3><?php echo l('plugins.nightly.artifacts'); ?></h3>
+		<h3><?php echo l('nightly.artifacts'); ?></h3>
 		<?php foreach(explode(',', $build->artifacts) as $artifact) { ?>
 			<?php if(file_exists($build->build_dir() .'/'. $artifact)) { ?>
 				<li><?php echo HTML::link($artifact, $build->href('/artifact/' . $artifact)); ?> (<?php echo FileSize::format(filesize($build->build_dir() .'/'. $artifact)); ?>)</li>
@@ -23,11 +23,11 @@
 		<?php } ?>
 	<?php } ?>
 		<br>
-		<h3><?php echo l('plugins.nightly.console_output'); ?></h3>
+		<h3><?php echo l('nightly.console_output'); ?></h3>
 		<?php
 			$lines = preg_split('/\r\n|\r|\n/', $build->console);
 			if(count($lines) > 50) {
-				echo l('plugins.nightly.line_info') . ', ' . HTML::link(l('plugins.nightly.full_output'), $build->href('/output.txt')) . ' (' . FileSize::format(strlen($build->console)) . ').';
+				echo l('nightly.line_info') . ', ' . HTML::link(l('nightly.full_output'), $build->href('/output.txt')) . ' (' . FileSize::format(strlen($build->console)) . ').';
 			}
 			echo '<div class="box"><code>' . (count($lines) > 50 ? '(...)<br>' : '') . nl2br(implode(PHP_EOL, array_slice($lines, -50, 50))) . '</code></div>';
 		?>

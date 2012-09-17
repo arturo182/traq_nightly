@@ -1,5 +1,5 @@
 <div class="content">
-	<h2 id="page_title"><?php echo l('plugins.nightly.build_settings'); ?></h2>
+	<h2 id="page_title"><?php echo l('nightly.build_settings'); ?></h2>
 </div>
 <?php View::render('projectsettings/_nav'); ?>
 <div class="content">
