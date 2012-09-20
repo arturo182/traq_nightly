@@ -17,10 +17,15 @@
  * You should have received a copy of the GNU General Public License
  * along with Traq. If not, see <http://www.gnu.org/licenses/>.
  */
+namespace traq\plugins;
 
 include APPPATH . '/plugins/nightly/models/build.php';
 
 use Avalon\Database;
+use \FishHook;
+use \Project;
+use \Router;
+use \Build;
 
 /**
  * Nightly snapshot builder.
@@ -30,7 +35,7 @@ use Avalon\Database;
  * @author arturo182
  * @copyright (c) arturo182
  */
-class Plugin_nightly extends PluginBase
+class Nightly extends \traq\libraries\Plugin
 {
 	public static function info()
 	{
@@ -90,10 +95,42 @@ class Plugin_nightly extends PluginBase
 
 	public static function init()
 	{
-		FishHook::add('template:layouts/default/main_nav', array('Plugin_nightly', 'main_nav'));
-		FishHook::add('template:projectsettings/_nav', array('Plugin_nightly', 'project_nav'));
-		FishHook::add('model::__construct', array('Plugin_nightly', 'model_construct'));
-		FishHook::add('model::__get', array('Plugin_nightly', 'model_get')); 
+		FishHook::add('template:layouts/default/main_nav', function($project)
+		{
+			if($project) {
+				echo '<li'. iif(active_nav('/:slug/nightly(.*)'), ' class="active"') .'>'. HTML::link('Builds', $project->href("nightly")) .'</li>'.PHP_EOL;
+			} else {
+				echo '<li'. iif(active_nav('/nightly'), ' class="active"') .'>'. HTML::link('Builds', '/nightly') .'</li>'.PHP_EOL;
+			}
+		});
+		
+		FishHook::add('template:projectsettings/_nav', function($project)
+		{
+			echo '<li' . iif(active_nav('/:slug/settings/nightly'), ' class="active"') . '>' . HTML::link('Builds', "{$project->slug}/settings/nightly") . '</li>';
+		});
+		
+		FishHook::add('model::__construct', function($name, $obj, &$properties)
+		{
+			if($name != 'Project')
+				return;
+
+			$properties = array_merge($properties, array('build_interval', 'build_artifacts', 'build_cmds', 'build_at', 'build_enabled'));
+		});
+		
+		FishHook::add('model::__get', function($name, $var, $data, $val)
+		{
+			if($name != 'Project')
+				return;
+
+			$builds = Build::select('*')->where('project_id', $data['id']);
+			if($var == 'build_recent') {
+				$val = $builds->order_by('build_id', 'DESC')->limit(1)->exec()->fetch();	
+			} else if($var == 'build_success') {
+				$val = $builds->where('status', '1')->order_by('build_id', 'DESC')->limit(1)->exec()->fetch();	
+			} else if($var == 'build_failure') {
+				$val = $builds->where('status', '0')->order_by('build_id', 'DESC')->limit(1)->exec()->fetch();	
+			} 
+		}); 
 
 		Router::add('/nightly', 'Nightly::global_builds');
 		Router::add('/admin/plugins/nightly', 'NightlyAdmin::index');
@@ -106,43 +143,6 @@ class Plugin_nightly extends PluginBase
 		//this we are sure that the Project constructor is called in time
 		$p = new Project;
 		unset($p);
-	}
-
-	public static function main_nav($project)
-	{
-		if($project) {
-			echo '<li'. iif(active_nav('/:slug/nightly(.*)'), ' class="active"') .'>'. HTML::link('Builds', $project->href("nightly")) .'</li>'.PHP_EOL;
-		} else {
-			echo '<li'. iif(active_nav('/nightly'), ' class="active"') .'>'. HTML::link('Builds', '/nightly') .'</li>'.PHP_EOL;
-		}
-	}
-
-	public static function project_nav($project)
-	{
-		echo '<li' . iif(active_nav('/:slug/settings/nightly'), ' class="active"') . '>' . HTML::link('Builds', "{$project->slug}/settings/nightly") . '</li>';
-	}
-
-	public static function model_get($name, $var, $data, $val)
-	{
-		if($name != 'Project')
-			return;
-
-		$builds = Build::select('*')->where('project_id', $data['id']);
-		if($var == 'build_recent') {
-			$val = $builds->order_by('build_id', 'DESC')->limit(1)->exec()->fetch();	
-		} else if($var == 'build_success') {
-			$val = $builds->where('status', '1')->order_by('build_id', 'DESC')->limit(1)->exec()->fetch();	
-		} else if($var == 'build_failure') {
-			$val = $builds->where('status', '0')->order_by('build_id', 'DESC')->limit(1)->exec()->fetch();	
-		} 
-	}
-
-	public static function model_construct($name, $obj, &$properties)
-	{
-		if($name != 'Project')
-			return;
-
-		$properties = array_merge($properties, array('build_interval', 'build_artifacts', 'build_cmds', 'build_at', 'build_enabled'));
 	}
 }
 
