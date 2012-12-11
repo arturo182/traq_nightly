@@ -1,11 +1,17 @@
 <?php
+namespace nightly\controllers;
 
 include APPPATH . '/plugins/nightly/helpers/filesize.php';
 
+use traq\controllers\AppController;
+use traq\models\Project;
 use avalon\core\Controller;
+use avalon\output\View;
+use avalon\http\Router;
 use avalon\Database;
+use nightly\models\Build;
 
-class NightlyController extends AppController
+class Nightly extends AppController
 {
 	public function action_global_builds()
 	{
@@ -69,7 +75,6 @@ class NightlyController extends AppController
 
 	public function action_artifact($project_slug, $build_id, $artifact)
 	{
-
 		$project = Project::find('slug', $project_slug);
 		$build = Build::select()->where(array(array('project_id', $project->id), array('build_id', $build_id)))->exec()->fetch();
 		

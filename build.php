@@ -1,6 +1,9 @@
 <?php
-	include dirname(__FILE__) . '/../../bootstrap.php';
+	include dirname(__FILE__) . '/../../../bootstrap.php';
+	include dirname(__FILE__) . '/../../helpers/uri.php';
 
+	use nightly\models\Build;
+	use traq\models\Project;
 	use avalon\Database;
 
 	//10 hours should be enough
@@ -28,7 +31,7 @@
 
 				$console .= 'Building ' . $project->slug .' in ' . $build_dir . PHP_EOL;
 
-				$cmds = preg_split( '/\r\n|\r|\n/', $project->build_cmds);
+				$cmds = preg_split('/\r\n|\r|\n/', htmlspecialchars_decode($project->build_cmds));
 				$cmds = array_filter($cmds, 'strlen');
 
 				$start_time = microtime(true);
@@ -75,9 +78,11 @@
 					break;
 		
 				if(is_dir($item)) {
-					exec('rm -rf ' . $item);
+					echo 'rm -rf ' . $item . PHP_EOL;
+					//exec('rm -rf ' . $item);
 				} else if(!in_array($item, $artifacts)) {
-					unlink($item);
+				echo 'unlink ' . $item . PHP_EOL;
+					//unlink($item);
 				}
 			}
 

@@ -1,31 +1,13 @@
 <?php
-/*!
- * Traq
- * Copyright (C) 2009-2012 Traq.io
- * 
- * This file is part of Traq.
- * 
- * Traq is free software: you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation; version 3 only.
- * 
- * Traq is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
- * GNU General Public License for more details.
- * 
- * You should have received a copy of the GNU General Public License
- * along with Traq. If not, see <http://www.gnu.org/licenses/>.
- */
 namespace traq\plugins;
 
-include APPPATH . '/plugins/nightly/models/build.php';
-
-use Avalon\Database;
-use \FishHook;
-use \Project;
-use \Router;
-use \Build;
+use nightly\models\Build;
+use traq\models\Project;
+use avalon\http\Router;
+use avalon\Autoloader;
+use avalon\Database;
+use FishHook;
+use HTML;
 
 /**
  * Nightly snapshot builder.
@@ -44,6 +26,67 @@ class Nightly extends \traq\libraries\Plugin
 			'version' => '0.1',
 			'author' => 'arturo182'
 		);
+	}
+
+	public static function init()
+	{
+		Autoloader::registerNamespace('nightly', __DIR__);
+	
+		Router::add('/nightly', 'nightly::controllers::Nightly.global_builds');
+		Router::add('/admin/plugins/nightly', 'nightly::controllers::Admin.index');
+		Router::add('/' . RTR_PROJSLUG . '/nightly', 'nightly::controllers::Nightly.builds/$1');
+		Router::add('/' . RTR_PROJSLUG . '/settings/nightly', 'nightly::controllers::Settings.index');
+		Router::add('/' . RTR_PROJSLUG . '/nightly/(?P<build_id>[0-9]+)', 'nightly::controllers::Nightly.view/$1,$2');
+		Router::add('/' . RTR_PROJSLUG . '/nightly/(?P<build_id>[0-9]+)/output.txt', 'nightly::controllers::Nightly.output/$1,$2');
+		Router::add('/' . RTR_PROJSLUG . '/nightly/(?P<build_id>[0-9]+)/artifact/(?P<artifact>[a-zA-Z0-9\-\_\.]+)', 'nightly::controllers::Nightly.artifact/$1,$2,$3');
+
+		FishHook::add('template:layouts/default/main_nav', function($project)
+		{
+			if($project) {
+				echo '<li'. iif(active_nav('/:slug/nightly(.*)'), ' class="active"') .'>'. HTML::link('Builds', $project->href("nightly")) .'</li>'.PHP_EOL;
+			} else {
+				echo '<li'. iif(active_nav('/nightly'), ' class="active"') .'>'. HTML::link('Builds', '/nightly') .'</li>'.PHP_EOL;
+			}
+		});
+		
+		FishHook::add('template:project_settings/_nav', function($project)
+		{
+			echo '<li' . iif(active_nav('/:slug/settings/nightly'), ' class="active"') . '>' . HTML::link('Builds', "{$project->slug}/settings/nightly") . '</li>';
+		});
+		
+		FishHook::add('model::__construct', function($name, $obj, &$properties, &$escape)
+		{
+			if($name != 'traq\models\Project')
+				return;
+
+			$properties[] = 'build_interval';
+			$properties[] = 'build_artifacts';
+			$properties[] = 'build_cmds';
+			$properties[] = 'build_at';
+			$properties[] = 'build_enabled';
+			
+			$escape[] = 'build_cmds';
+			$escape[] = 'build_artifacts';
+		});
+		
+		FishHook::add('model::__get', function($name, $var, $data, $val)
+		{
+			if($name != 'traq\models\Project')
+				return;
+
+			$builds = Build::select('*')->where('project_id', $data['id']);
+			if($var == 'build_recent') {
+				$val = $builds->order_by('build_id', 'DESC')->limit(1)->exec()->fetch();	
+			} else if($var == 'build_success') {
+				$val = $builds->where('status', '1')->order_by('build_id', 'DESC')->limit(1)->exec()->fetch();	
+			} else if($var == 'build_failure') {
+				$val = $builds->where('status', '0')->order_by('build_id', 'DESC')->limit(1)->exec()->fetch();	
+			} 
+		}); 
+
+		//this we are sure that the Project constructor is called in time
+		$p = new Project;
+		unset($p);
 	}
 
 	public static function __install()
@@ -91,58 +134,6 @@ class Nightly extends \traq\libraries\Plugin
 
 		unlink(APPPATH . '/../assets/images/bullet_red.png');
 		unlink(APPPATH . '/../assets/images/bullet_green.png');
-	}
-
-	public static function init()
-	{
-		FishHook::add('template:layouts/default/main_nav', function($project)
-		{
-			if($project) {
-				echo '<li'. iif(active_nav('/:slug/nightly(.*)'), ' class="active"') .'>'. HTML::link('Builds', $project->href("nightly")) .'</li>'.PHP_EOL;
-			} else {
-				echo '<li'. iif(active_nav('/nightly'), ' class="active"') .'>'. HTML::link('Builds', '/nightly') .'</li>'.PHP_EOL;
-			}
-		});
-		
-		FishHook::add('template:projectsettings/_nav', function($project)
-		{
-			echo '<li' . iif(active_nav('/:slug/settings/nightly'), ' class="active"') . '>' . HTML::link('Builds', "{$project->slug}/settings/nightly") . '</li>';
-		});
-		
-		FishHook::add('model::__construct', function($name, $obj, &$properties)
-		{
-			if($name != 'Project')
-				return;
-
-			$properties = array_merge($properties, array('build_interval', 'build_artifacts', 'build_cmds', 'build_at', 'build_enabled'));
-		});
-		
-		FishHook::add('model::__get', function($name, $var, $data, $val)
-		{
-			if($name != 'Project')
-				return;
-
-			$builds = Build::select('*')->where('project_id', $data['id']);
-			if($var == 'build_recent') {
-				$val = $builds->order_by('build_id', 'DESC')->limit(1)->exec()->fetch();	
-			} else if($var == 'build_success') {
-				$val = $builds->where('status', '1')->order_by('build_id', 'DESC')->limit(1)->exec()->fetch();	
-			} else if($var == 'build_failure') {
-				$val = $builds->where('status', '0')->order_by('build_id', 'DESC')->limit(1)->exec()->fetch();	
-			} 
-		}); 
-
-		Router::add('/nightly', 'Nightly::global_builds');
-		Router::add('/admin/plugins/nightly', 'NightlyAdmin::index');
-		Router::add('/' . RTR_PROJSLUG . '/nightly', 'Nightly::builds/$1');
-		Router::add('/' . RTR_PROJSLUG . '/settings/nightly', 'NightlySettings::index');
-		Router::add('/' . RTR_PROJSLUG . '/nightly/(?P<build_id>[0-9]+)', 'Nightly::view/$1,$2');
-		Router::add('/' . RTR_PROJSLUG . '/nightly/(?P<build_id>[0-9]+)/output.txt', 'Nightly::output/$1,$2');
-		Router::add('/' . RTR_PROJSLUG . '/nightly/(?P<build_id>[0-9]+)/artifact/(?P<artifact>[a-zA-Z0-9\-\_\.]+)', 'Nightly::artifact/$1,$2,$3');
-
-		//this we are sure that the Project constructor is called in time
-		$p = new Project;
-		unset($p);
 	}
 }
 

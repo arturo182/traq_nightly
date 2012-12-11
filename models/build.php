@@ -1,6 +1,8 @@
 <?php
+namespace nightly\models;
 
 use avalon\database\Model;
+use \traq\models\Project;
 
 class Build extends Model
 {
@@ -16,7 +18,7 @@ class Build extends Model
 		'artifacts'
 	);
 	
-	protected static $_belongs_to = array('project');
+	protected static $_belongs_to = array('project' => array('model' => 'traq\models\project'));
 
 	public function is_valid() { return true; }
 

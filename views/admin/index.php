@@ -1,6 +1,6 @@
 <div class="content">
 	<h3><?php echo l('nightly.settings'); ?></h3>
-	<form action="<?php echo Request::full_uri(); ?>" method="post">
+	<form action="<?php echo Request::requestUri(); ?>" method="post">
 		<div class="tabular box">
 			<div class="group">
 				<label><?php echo l('nightly.build_directory'); ?></label>

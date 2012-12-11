@@ -1,15 +1,17 @@
 <?php
+namespace nightly\controllers;
 
-include APPPATH . '/controllers/projectsettings/app_controller.php';
+use avalon\output\View;
+use avalon\http\Request;
+use traq\controllers\ProjectSettings\AppController;
 
-class NightlySettingsController extends ProjectSettingsAppController 
+class Settings extends AppController 
 {
 	public function action_index()
 	{
 		$project = clone $this->project;
 
-		if(Request::$method == 'post') {
-
+		if(Request::method() == 'post') {
 			$project->set(array(
 				'build_enabled' => Request::$post['build_enabled'],
 				'build_cmds' => Request::$post['build_cmds'],
@@ -19,7 +21,6 @@ class NightlySettingsController extends ProjectSettingsAppController
 			));
 
 			if($project->is_valid()){
-
 				$project->save();
 				Request::redirect(Request::base($project->href('settings/nightly')));
 			}

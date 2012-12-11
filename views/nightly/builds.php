@@ -5,9 +5,9 @@
 		<br>
 		<h3><?php echo l('nightly.last_success_artifacts'); ?></h3>
 		<ul>
-		<?php foreach(explode(',', $last_artifacts->artifacts) as $artifact) { ?>
+		<?php /*foreach(explode(',', $last_artifacts->artifacts) as $artifact) { ?>
 			<li><?php echo HTML::link($artifact, $last_artifacts->href('/artifact/' . $artifact)); ?> (<?php echo FileSize::format(filesize($last_artifacts->build_dir() .'/'. $artifact)); ?>)</li>
-		<?php } ?>
+		<?php }*/ ?>
 		</ul>
 	<?php } ?>
 		<h3>Statistics</h3>

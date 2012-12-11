@@ -1,14 +1,16 @@
 <?php
+namespace nightly\controllers;
 
-include APPPATH . '/controllers/admin/app_controller.php';
-
+use traq\controllers\Admin\AppController;
+use avalon\http\Request;
+use avalon\output\View;
 use avalon\Database;
 
-class NightlyAdminController extends AdminAppController
+class Admin extends AppController
 {
 	public function action_index()
 	{
-		if(Request::$method == 'post') {
+		if(Request::method() == 'post') {
 			$settings = Request::$post['settings'];
 			$settings = json_encode($settings);
 
