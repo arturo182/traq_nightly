@@ -6,7 +6,7 @@
 	<form action="<?php echo Request::requestUri(); ?>" method="post">
 		<?php show_errors($project->errors); ?>
 		<div class="tabular box">
-			<?php View::render('settings/_form', array('project' => $project)); ?>
+			<?php View::render('nightly/settings/_form', array('project' => $project)); ?>
 		</div>
 		<div class="actions">
 			<input type="submit" value="<?php echo l('save'); ?>" />

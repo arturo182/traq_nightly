@@ -7,6 +7,13 @@ use traq\controllers\ProjectSettings\AppController;
 
 class Settings extends AppController 
 {
+	public function __construct() 
+	{
+		parent::__construct();
+		
+		$this->_render['view'] = 'nightly/' . $this->_render['view'];
+	}
+	
 	public function action_index()
 	{
 		$project = clone $this->project;

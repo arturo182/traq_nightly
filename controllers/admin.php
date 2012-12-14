@@ -8,6 +8,13 @@ use avalon\Database;
 
 class Admin extends AppController
 {
+	public function __construct() 
+	{
+		parent::__construct();
+		
+		$this->_render['view'] = 'nightly/' . $this->_render['view'];
+	}
+	
 	public function action_index()
 	{
 		if(Request::method() == 'post') {

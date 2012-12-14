@@ -43,15 +43,15 @@ class Nightly extends \traq\libraries\Plugin
 		FishHook::add('template:layouts/default/main_nav', function($project)
 		{
 			if($project) {
-				echo '<li'. iif(active_nav('/:slug/nightly(.*)'), ' class="active"') .'>'. HTML::link('Builds', $project->href("nightly")) .'</li>'.PHP_EOL;
+				echo '<li'. iif(active_nav('/:slug/nightly(.*)'), ' class="active"') .'>'. HTML::link(l('nightly.builds'), $project->href("nightly")) .'</li>'.PHP_EOL;
 			} else {
-				echo '<li'. iif(active_nav('/nightly'), ' class="active"') .'>'. HTML::link('Builds', '/nightly') .'</li>'.PHP_EOL;
+				echo '<li'. iif(active_nav('/nightly'), ' class="active"') .'>'. HTML::link(l('nightly.builds'), '/nightly') .'</li>'.PHP_EOL;
 			}
 		});
 		
 		FishHook::add('template:project_settings/_nav', function($project)
 		{
-			echo '<li' . iif(active_nav('/:slug/settings/nightly'), ' class="active"') . '>' . HTML::link('Builds', "{$project->slug}/settings/nightly") . '</li>';
+			echo '<li' . iif(active_nav('/:slug/settings/nightly'), ' class="active"') . '>' . HTML::link(l('nightly.builds'), "{$project->slug}/settings/nightly") . '</li>';
 		});
 		
 		FishHook::add('model::__construct', function($name, $obj, &$properties, &$escape)

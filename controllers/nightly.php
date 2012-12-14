@@ -13,6 +13,13 @@ use nightly\models\Build;
 
 class Nightly extends AppController
 {
+	public function __construct() 
+	{
+		parent::__construct();
+		
+		$this->_render['view'] = 'nightly/' . $this->_render['view'];
+	}
+	
 	public function action_global_builds()
 	{
 		$projects = Project::select('*')->where('build_enabled', '1')->exec()->fetch_all();
